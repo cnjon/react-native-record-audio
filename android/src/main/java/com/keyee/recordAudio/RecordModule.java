@@ -39,8 +39,20 @@ public class RecordModule extends ReactContextBaseJavaModule {
             fileName = "recordKeyeeApp";
         if (!fileName.endsWith(".wav"))
             fileName+= ".wav";
-        String fileBasePath = this.getReactApplicationContext().getFilesDir().getAbsolutePath();
-        WavAudioName = fileBasePath+"/audioCache/"+fileName;
+        String fileBasePath = "";
+        try {
+            fileBasePath = this.getReactApplicationContext().getFilesDir().getCanonicalPath()+"/audioCache/";
+            File fileCreate = new File(fileBasePath);
+            if (!fileCreate.exists()) {
+                fileCreate.mkdirs();
+            }
+        } catch (Exception ex) {
+            callbackMap.putBoolean("success", false);
+            callbackMap.putString("param","create audioCache failed!");
+            callback.invoke(callbackMap);
+            return;
+        }
+        WavAudioName = fileBasePath+fileName;
         if (exRecorder != null){
             exRecorder.release();
             exRecorder = null;
@@ -79,7 +91,7 @@ public class RecordModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void clearCache(Callback callback) {
         try {
-            String fileBasePath = this.getReactApplicationContext().getFilesDir().getAbsolutePath();
+            String fileBasePath = this.getReactApplicationContext().getFilesDir().getCanonicalPath();
             File file = new File(fileBasePath+"/audioCache");
             if (!file.exists()) {
                 callback.invoke(true);
